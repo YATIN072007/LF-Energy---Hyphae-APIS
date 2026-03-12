@@ -2,9 +2,9 @@ name: Makefile CI
 
 on:
   push:
-    branches: [ "add-license-1" ]
+    branches: [ "add-license-1", "main", "master" ]
   pull_request:
-    branches: [ "add-license-1" ]
+    branches: [ "add-license-1", "main", "master" ]
 
 jobs:
   build:
@@ -14,28 +14,39 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # - name: configure
-    #  run: ./configure
-
     - name: Install dependencies
       run: |
-        sudo apt install git
-        sudo apt install make
-        sudo apt install maven
-        sudo apt install groovy
-        sudo apt install python3-venv
-        sudo apt install python3-pip
+        set -e
+        sudo apt update
+        sudo apt install -y git make maven groovy python3-venv python3-pip
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
         echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
-        sudo apt install mongodb-org
+        sudo apt update
+        sudo apt install -y mongodb-org
 
     - name: Build
-      run: make build
+      run: |
+        set -e
+        make build
       
-    - name: Run
-      run: make run
+    - name: Run Services
+      run: |
+        set -e
+        make run
+        
+    - name: Verify Services Running (Integration Test)
+      run: |
+        set -e
+        echo "Waiting for services to initialize..."
+        sleep 10
+        echo "Verifying processes..."
+        pgrep java > /dev/null || (echo "Java services failed to start" && exit 1)
+        pgrep python > /dev/null || (echo "Python services failed to start" && exit 1)
+        pgrep mongod > /dev/null || (echo "MongoDB failed to start" && exit 1)
+        echo "All core processes are running successfully."
 
-    - name: Stop
+    - name: Stop Services
+      if: always()
       run: make stop
 
 
