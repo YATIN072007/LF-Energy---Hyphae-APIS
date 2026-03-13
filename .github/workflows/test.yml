@@ -65,7 +65,7 @@ jobs:
         if [ -d "apis-emulator" ] && [ -f "apis-emulator/requirements.txt" ]; then
           cd apis-emulator
           pip install -r requirements.txt
-          python -m pytest || echo "No tests found or pytest failed, continuing..."
+          python -m pytest || if [ $? -eq 1 ]; then exit 1; fi
         fi
         cd ..
         
@@ -73,7 +73,7 @@ jobs:
         if [ -d "apis-main_controller" ] && [ -f "apis-main_controller/requirements.txt" ]; then
           cd apis-main_controller
           pip install -r requirements.txt
-          python -m pytest || echo "No tests found or pytest failed, continuing..."
+          python -m pytest || if [ $? -eq 1 ]; then exit 1; fi
         fi
         cd ..
         
@@ -81,6 +81,6 @@ jobs:
         if [ -d "apis-tester" ] && [ -f "apis-tester/requirements.txt" ]; then
           cd apis-tester
           pip install -r requirements.txt
-          python -m pytest || echo "No tests found or pytest failed, continuing..."
+          python -m pytest || if [ $? -eq 1 ]; then exit 1; fi
         fi
         cd ..
